@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Administrative - Mairie d'Adjamé</title>
+    <link rel="icon" href="images/logo_mairie.jpeg" type="image/jpeg">
+    <link rel="stylesheet" href="test1.css">
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Styles temporaires pour l'animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .section {
+            animation: fadeIn 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+       <!-- Sidebar -->
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <h2 class="app-title">Gestion Administrative</h2>
+        <p class="app-subtitle">Mairie d'Adjamé</p>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <button class="sidebar-btn active" data-target="bordereau" aria-label="Section Bordereau CMU" aria-current="page">
+            <i data-lucide="file-text"></i>
+            <span>Bordereaux</span>
+        </button>
+        <button class="sidebar-btn" data-target="mandat" aria-label="Section Mandat de Paiement">
+            <i data-lucide="credit-card"></i>
+            <span>Mandats</span>
+        </button>
+        <button class="sidebar-btn" data-target="archives" aria-label="Section Archives">
+            <i data-lucide="archive"></i>
+            <span>Archives</span>
+        </button>
+        <button class="sidebar-btn" data-target="aide" aria-label="Section Aide">
+            <i data-lucide="help-circle"></i>
+            <span>Aide</span>
+        </button>
+    </nav>
+    
+    <div class="sidebar-footer">
+        <div class="logo-display">
+            <div class="logo-wrapper">
+                <img src="images/logo_mairie3.png" alt="Logo Mairie d'Adjamé" class="sidebar-logo">
+                <div class="logo-glow"></div>
+            </div>
+            
+            <div class="logo-details">
+                <div class="mairie-name">Mairie d'Adjamé</div>
+                <div class="app-description">Gestion Administrative</div>
+            </div>
+        </div>
+        
+        <div class="version-badge">
+            <i data-lucide="shield-check"></i>
+            <span>v1.0</span>
+        </div>
+    </div>
+</aside>
+        
+        <!-- Main content -->
+        <div class="main-content">
+            <!-- Top header -->
+            <header class="main-header">
+                <div class="header-titles">
+                    <h1 id="current-section-title">Bordereau d'Émission des Mandats - CMU</h1>
+                </div>
+                <div class="header-actions">
+                    <div class="version-badge">v1.0</div>
+                </div>
+            </header>
+            
+            <!-- Content sections -->
+            <main class="content">
+                <!-- SECTION BORDEREAU -->
+                <section id="section-bordereau" class="section active" aria-labelledby="bordereau-title">
+                    <!-- Formulaire en-tête -->
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="bord-exercice" class="form-label">Exercice</label>
+                            <input type="number" id="bord-exercice" class="form-input" value="2025" placeholder="2025" aria-label="Année d'exercice">
+                        </div>
+                        <div class="form-group">
+                            <label for="bord-numero" class="form-label">Numéro Bordereau</label>
+                            <input type="text" id="bord-numero" class="form-input" value="BR-2025-001" readonly aria-label="Numéro du bordereau">
+                        </div>
+                        <div class="form-group">
+                            <label for="bord-date" class="form-label">Date d'Émission</label>
+                            <input type="date" id="bord-date" class="form-input" aria-label="Date d'émission du bordereau">
+                        </div>
+                        <div class="form-group">
+                            <label for="bord-folio" class="form-label">Folio N°</label>
+                            <input type="text" id="bord-folio" class="form-input" value="/2025" placeholder="/2025" aria-label="Numéro de folio">
+                        </div>
+                    </div>
+                    
+                    <!-- Tableau -->
+                    <div class="table-container">
+                        <table class="bordereau-table" aria-labelledby="bordereau-title">
+                            <caption class="sr-only">Tableau des lignes du bordereau CMU</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">N°</th>
+                                    <th scope="col">Nature de la Dépense</th>
+                                    <th scope="col">Nom et adresse du créancier</th>
+                                    <th scope="col">Imputation</th>
+                                    <th scope="col">Somme Mandatée</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableau-lignes">
+                                <!-- Lignes dynamiques -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Actions tableau -->
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" onclick="ajouterLigneBordereau()" aria-label="Ajouter une nouvelle ligne au bordereau">
+                            <i data-lucide="plus"></i>
+                            Ajouter une ligne
+                        </button>
+                        <button class="btn btn-secondary" onclick="remplirExempleCMU()" aria-label="Remplir avec un exemple de données CMU">
+                            <i data-lucide="clipboard"></i>
+                            Exemple CMU
+                        </button>
+                    </div>
+                    
+                    <!-- Total -->
+                    <div class="total-section" aria-live="polite" aria-atomic="true">
+                        <span class="total-label">Total du présent bordereau :</span>
+                        <span class="total-amount" id="total-bord">0 F CFA</span>
+                    </div>
+                    
+                    <!-- Actions principales -->
+                    <div class="main-actions">
+                        <button class="btn btn-success" onclick="enregistrerBordereau()" aria-label="Enregistrer le bordereau">
+                            <i data-lucide="save"></i>
+                            Enregistrer
+                        </button>
+                        <button class="btn btn-primary" onclick="imprimerBordereau()" aria-label="Imprimer le bordereau">
+                            <i data-lucide="printer"></i>
+                            Imprimer
+                        </button>
+                        <button class="btn btn-secondary" onclick="genererPDFBordereau()" aria-label="Télécharger le bordereau en PDF">
+                            <i data-lucide="download"></i>
+                            Télécharger PDF
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- SECTION MANDAT -->
+                <section id="section-mandat" class="section" aria-labelledby="mandat-title">
+                    <div class="mandat-form">
+                        <!-- En-tête -->
+                        <div class="mandat-header">
+                            <h2>RÉPUBLIQUE DE CÔTE D'IVOIRE</h2>
+                            <h3>MANDAT DE PAIEMENT</h3>
+                        </div>
+                        
+                        <!-- Infos mandat -->
+                        <div class="mandat-info">
+                            <div>
+                                <label for="mand-exercice" class="field-label">Exercice :</label>
+                                <input type="number" id="mand-exercice" class="mandat-input" value="2025" placeholder="2025" aria-label="Exercice du mandat">
+                            </div>
+                            <div>
+                                <label for="mand-titre-budget" class="field-label">Titre du Budget :</label>
+                                <input type="text" id="mand-titre-budget" class="mandat-input" value="1" placeholder="1" aria-label="Titre du budget">
+                            </div>
+                        </div>
+                        
+                        <!-- Imputation -->
+                        <div class="mandat-imputation">
+                            <div class="field-label">Imputation</div>
+                            <div class="imputation-row">
+                                <div>
+                                    <label for="mand-fonctionnelle" class="sub-label">Fonctionnelle :</label>
+                                    <input type="text" id="mand-fonctionnelle" class="mandat-input" value="6000/1" placeholder="6000/1" aria-label="Imputation fonctionnelle">
+                                </div>
+                                <div>
+                                    <label for="mand-patrimoniale" class="sub-label">Patrimoniale :</label>
+                                    <input type="text" id="mand-patrimoniale" class="mandat-input" placeholder="Optionnel" aria-label="Imputation patrimoniale (optionnel)">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Numéros -->
+                        <div class="numeros-section">
+                            <div>
+                                <label for="mand-inscription" class="sub-label">N° d'inscription :</label>
+                                <input type="text" id="mand-inscription" class="mandat-input" placeholder="Numéro d'inscription" aria-label="Numéro d'inscription">
+                            </div>
+                            <div>
+                                <label for="mand-numero" class="sub-label">Numéro d'ordre :</label>
+                                <input type="text" id="mand-numero" class="mandat-input" value="MP-2025-001" readonly aria-label="Numéro d'ordre du mandat">
+                            </div>
+                            <div>
+                                <label for="mand-bordereau" class="sub-label">N° Bordereau d'émission :</label>
+                                <input type="text" id="mand-bordereau" class="mandat-input" placeholder="BR-2025-001" aria-label="Numéro du bordereau d'émission">
+                            </div>
+                        </div>
+                        
+                        <!-- Code et Comptable -->
+                        <div class="code-section">
+                            <div>
+                                <label for="mand-code" class="sub-label">Code :</label>
+                                <input type="text" id="mand-code" class="mandat-input" value="312" placeholder="312" aria-label="Code du mandat">
+                            </div>
+                            <div>
+                                <label for="mand-comptable" class="sub-label">Comptable Payeur :</label>
+                                <input type="text" id="mand-comptable" class="mandat-input" placeholder="Nom du comptable" aria-label="Nom du comptable payeur">
+                            </div>
+                        </div>
+                        
+                        <!-- Objet -->
+                        <div class="objet-section">
+                            <label for="mand-objet" class="sub-label">Objet de la dépense :</label>
+                            <input type="text" id="mand-objet" class="mandat-input" 
+                                   value="SALAIRE ACQUIS PAR LE PERSONNEL EN SERVICE DU MOIS DE NOVEMBRE 2025" 
+                                   aria-label="Objet de la dépense">
+                            <div class="sub-label tresorerie">Trésorerie Principale d'Adjamé</div>
+                        </div>
+                        
+                        <!-- Créancier -->
+                        <div class="creancier-box">
+                            <div class="creancier-title">Créancier</div>
+                            <div class="creancier-content">
+                                <div class="beneficiaire-section">
+                                    <label for="mand-beneficiaire" class="sub-label">Bénéficiaire :</label>
+                                    <input type="text" id="mand-beneficiaire" class="mandat-input" 
+                                           value="PERSONNEL DE L'ADMINISTRATION GENERALE" aria-label="Nom du bénéficiaire">
+                                </div>
+                                <div class="montant-section">
+                                    <label for="mand-montant" class="sub-label">Montant Brut</label>
+                                    <input type="number" id="mand-montant" class="mandat-input montant-input" value="222222" 
+                                           placeholder="0" aria-label="Montant brut du mandat">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Virement -->
+                        <div class="virement-section">
+                            <div>
+                                <div class="sub-label">Au virement à :</div>
+                                <div class="virement-options" role="radiogroup" aria-label="Type de virement">
+                                    <label>
+                                        <input type="radio" name="virement-type" value="postal" checked aria-label="Virement Postal">
+                                        Virement Postal
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="virement-type" value="bancaire" aria-label="Virement Bancaire">
+                                        Virement Bancaire
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="virement-type" value="cheque" aria-label="Chèque bancaire">
+                                        Chèque bancaire
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="mand-compte" class="sub-label">Compte Bancaire ou Postal :</label>
+                                <input type="text" id="mand-compte" class="mandat-input" placeholder="Numéro de compte" aria-label="Numéro de compte bancaire ou postal">
+                                <label for="mand-agence" class="sub-label" id="agence-label">Agence de :</label>
+                                <input type="text" id="mand-agence" class="mandat-input" placeholder="Nom de l'agence" aria-label="Nom de l'agence">
+                            </div>
+                        </div>
+                        
+                        <!-- Pièces justificatives -->
+                        <div class="pieces-section">
+                            <label for="mand-pieces" class="sub-label">Pièces Justificatives de la Dépense :</label>
+                            <input type="text" id="mand-pieces" class="mandat-input" value="ETAT DE SALAIRE CI-JOINT" 
+                                   placeholder="Description des pièces" aria-label="Description des pièces justificatives">
+                        </div>
+                        
+                        <!-- Signatures -->
+                        <div class="signatures-section">
+                            <div class="signature-box">
+                                <div class="signature-line"></div>
+                                <div class="signature-text">Signature et Cachet de l'Ordonnateur</div>
+                                <div class="signature-name">SOUMAHORO FARIKOU</div>
+                            </div>
+                            <div class="signature-box">
+                                <div class="signature-line"></div>
+                                <div class="signature-text">Pour acquis de la somme indiquée ci-dessus</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="main-actions">
+                        <button class="btn btn-success" onclick="enregistrerMandat()" aria-label="Enregistrer le mandat">
+                            <i data-lucide="save"></i>
+                            Enregistrer
+                        </button>
+                        <button class="btn btn-primary" onclick="imprimerMandat()" aria-label="Imprimer le mandat">
+                            <i data-lucide="printer"></i>
+                            Imprimer
+                        </button>
+                        <button class="btn btn-secondary" onclick="genererPDFMandat()" aria-label="Télécharger le mandat en PDF">
+                            <i data-lucide="download"></i>
+                            Télécharger PDF
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- SECTION ARCHIVES -->
+                <section id="section-archives" class="section" aria-labelledby="archives-title">
+                    <!-- Filtres -->
+                    <div class="filters" role="search" aria-label="Filtres de recherche des archives">
+                        <label for="recherche-archives" class="sr-only">Rechercher dans les archives</label>
+                        <input type="text" id="recherche-archives" class="form-input filter-input" 
+                               placeholder="Rechercher..." aria-label="Termes de recherche">
+                        
+                        <label for="filtre-type" class="sr-only">Filtrer par type de document</label>
+                        <select id="filtre-type" class="form-input filter-select" aria-label="Type de document à filtrer">
+                            <option value="tous">Tous les documents</option>
+                            <option value="bordereau">Bordereaux seulement</option>
+                            <option value="mandat">Mandats seulement</option>
+                        </select>
+                        
+                        <button class="btn btn-secondary" onclick="filtrerArchives()" aria-label="Appliquer les filtres">
+                            <i data-lucide="search"></i>
+                            Filtrer
+                        </button>
+                        <button class="btn btn-secondary" onclick="exporterTout()" aria-label="Exporter tous les documents">
+                            <i data-lucide="upload"></i>
+                            Exporter
+                        </button>
+                    </div>
+                    
+                    <!-- Liste -->
+                    <div id="liste-archives" role="list" aria-label="Liste des documents archivés">
+                        <!-- Documents dynamiques -->
+                    </div>
+                </section>
+                
+                <!-- SECTION AIDE -->
+                <section id="section-aide" class="section" aria-labelledby="aide-title">
+                    <div class="aide-content">
+                        <h2 class="aide-title" id="aide-title">Guide d'Utilisation</h2>
+                        
+                        <h3>Comment utiliser ce logiciel</h3>
+                        
+                        <div class="instruction">
+                            <h4>
+                                <i data-lucide="file-text"></i>
+                                Créer un Bordereau CMU
+                            </h4>
+                            <ol>
+                                <li>Cliquez sur l'onglet "Bordereau CMU"</li>
+                                <li>Remplissez l'exercice et la date</li>
+                                <li>Cliquez "Ajouter une ligne" pour chaque cotisation</li>
+                                <li>Remplissez la nature (CMU), le code budgétaire (ex: 6000/1) et le montant</li>
+                                <li>Le total se calcule automatiquement</li>
+                                <li>Cliquez "Enregistrer" puis "Imprimer"</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="instruction">
+                            <h4>
+                                <i data-lucide="credit-card"></i>
+                                Créer un Mandat de Paiement
+                            </h4>
+                            <ol>
+                                <li>Cliquez sur l'onglet "Mandat de Paiement"</li>
+                                <li>Remplissez tous les champs du formulaire</li>
+                                <li>Vérifiez le bénéficiaire et le montant</li>
+                                <li>Sélectionnez le mode de paiement</li>
+                                <li>Cliquez "Enregistrer" puis "Imprimer"</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="instruction">
+                            <h4>
+                                <i data-lucide="archive"></i>
+                                Consulter les Archives
+                            </h4>
+                            <p>Utilisez l'onglet "Archives" pour voir tous les documents créés. Vous pouvez filtrer par type et rechercher par numéro ou bénéficiaire.</p>
+                        </div>
+                        
+                        <div class="support-box">
+                            <h4>Support Technique</h4>
+                            <p>Pour toute assistance, contactez le service informatique de la Mairie.</p>
+                            <div class="footer-note">
+                                Logiciel de gestion administrative - Version 1.0<br>
+                                © 2024 Mairie d'Adjamé - Tous droits réservés
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+            
+            <!-- Pied de page -->
+            <footer class="app-footer" role="contentinfo">
+                <div>Logiciel de Gestion Administrative - Mairie d'Adjamé</div>
+                <div class="copyright">© 2024 - Tous droits réservés</div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Zone d'impression -->
+    <div id="print-zone" aria-hidden="true"></div>
+
+    <script>
+        // Initialiser les icônes Lucide
+        lucide.createIcons();
+    </script>
+    <script src="test1.js"></script>
+</body>
+</html>
